@@ -1,0 +1,12 @@
+/*
+ * src/App.css
+ *
+ * Vite boilerplate has been removed. This file is kept as a placeholder for
+ * any App-level CSS overrides that don't belong in index.css or Tailwind.
+ *
+ * Global base styles (reset, fonts, custom properties, cursor-active rule)
+ * live in src/index.css.
+ *
+ * Component-specific styles should use Tailwind utility classes directly on
+ * JSX elements rather than being added here.
+ */

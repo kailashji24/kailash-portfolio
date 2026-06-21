@@ -1,0 +1,78 @@
+/* =========================================================
+   Background system additions — append to src/index.css
+   =========================================================
+
+   This file contains:
+   1. Grain/parchment texture overlay (fixed, above particles, below content)
+   2. Section background tokens (semi-transparent so particles bleed through)
+   3. Integration notes for App.tsx and each section component
+*/
+
+/* ---------------------------------------------------------
+   1. Grain texture overlay
+   --------------------------------------------------------- */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-overlay {
+    opacity: 0.035;
+  }
+}
+
+/* ---------------------------------------------------------
+   2. Section background tokens
+   --------------------------------------------------------- */
+:root {
+  /* Semi-transparent versions of the navy palette so the fixed
+     particle canvas (z-index: 0) bleeds through section backgrounds
+     (z-index: 1+). Use these INSTEAD OF solid #0A1428 / #0D1B2E. */
+  --bg-navy-deep: rgba(10, 20, 40, 0.82);   /* was #0A1428 */
+  --bg-navy-mid: rgba(13, 27, 46, 0.82);    /* was #0D1B2E */
+}
+
+/* ---------------------------------------------------------
+   3. Integration notes (for Kiro / implementer)
+   ---------------------------------------------------------
+
+   App.tsx structure:
+
+     <div style={{ position: 'relative', minHeight: '100vh' }}>
+       <ParticleBackground reducedMotion={reducedMotion} />
+       <div className="grain-overlay" />
+       <main style={{ position: 'relative', zIndex: 1 }}>
+         <Hero ... />
+         <About ... />
+         ...
+       </main>
+     </div>
+
+   Each section component (Hero, About, Skills, Projects, Experience,
+   Certs, Contact):
+     - Replace backgroundColor: '#0A1428'  ->  backgroundColor: 'var(--bg-navy-deep)'
+     - Replace backgroundColor: '#0D1B2E'  ->  backgroundColor: 'var(--bg-navy-mid)'
+     - Section root must have position: relative (Hero additionally needs
+       this so VoyageMotifs, which is position: absolute, anchors correctly
+       to the Hero section rather than the page).
+
+   Hero.tsx additionally imports and renders VoyageMotifs:
+
+     import VoyageMotifs from './VoyageMotifs';
+     ...
+     <section id="hero" style={{ position: 'relative', backgroundColor: 'var(--bg-navy-deep)' }}>
+       <VoyageMotifs reducedMotion={reducedMotion} />
+       ...existing hero content...
+     </section>
+
+   Do NOT mount ParticleBackground inside Hero.tsx — it must live once
+   at the App root so it persists as a fixed layer behind every section,
+   not just Hero.
+*/

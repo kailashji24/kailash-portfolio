@@ -1,0 +1,120 @@
+/* ─── Google Fonts ─────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+/* ─── Tailwind Directives ───────────────────────────────────────────────────── */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Custom Properties ─────────────────────────────────────────────────── */
+:root {
+  /* Base */
+  --color-navy:        #0A1428;
+  --color-navy-light:  #0D1B2E;
+
+  /* Accent */
+  --color-ocean:       #1B3A5B;
+  --color-ocean-mid:   #2C5F7C;
+
+  /* Gold */
+  --color-gold:        #E8B23A;
+  --color-gold-bright: #F2C94C;
+
+  /* Text */
+  --color-text-primary:   #E8EDF2;
+  --color-text-secondary: #8FA3B8;
+
+  /* ── Section background tokens ──────────────────────────────────────────
+     Semi-transparent so the fixed particle canvas (z-index: 0) bleeds
+     through. Use these instead of solid #0A1428 / #0D1B2E on sections.  */
+  --bg-navy-deep: rgba(10, 20, 40, 0.82);   /* was #0A1428 */
+  --bg-navy-mid:  rgba(13, 27, 46, 0.82);   /* was #0D1B2E */
+}
+
+/* ─── Global Base Styles ─────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ─── Keyboard Focus Ring ────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid #E8B23A;
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-navy);
+  color: var(--color-text-primary);
+  font-family: Inter, Satoshi, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ─── Custom Cursor ──────────────────────────────────────────────────────────── */
+body.cursor-active {
+  cursor: none;
+}
+
+/* ─── Typing Cursor Blink ────────────────────────────────────────────────────── */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.typing-cursor {
+  display: inline-block;
+  animation: blink 0.7s step-start infinite;
+}
+
+/* ─── Scroll Indicator Oscillation ──────────────────────────────────────────── */
+@keyframes compass-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+
+.compass-float {
+  animation: compass-float 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compass-float { animation: none; }
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%       { transform: translateX(-50%) translateY(-8px); }
+}
+
+.scroll-indicator-bounce {
+  animation: scrollBounce 1.5s ease-in-out infinite;
+}
+
+/* ─── Grain / Parchment Texture Overlay ─────────────────────────────────────── */
+/* Rendered as a standalone <div class="grain-overlay"> in App.tsx (not ::after)
+   so it reliably covers the full viewport at all scroll positions.              */
+.grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-overlay { opacity: 0.035; }
+}

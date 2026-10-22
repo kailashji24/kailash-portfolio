@@ -1,197 +1,133 @@
 /**
- * @file CustomCursor.tsx
+ * CustomCursor — gold dot + lagging ring for fine-pointer (mouse) devices.
  *
- * Renders a gold dot + lagging outer ring that follow the pointer on fine-pointer
- * (mouse) devices. On touch / coarse-pointer devices this component renders null.
+ * - Renders nothing on touch devices or under prefers-reduced-motion.
+ * - Stays hidden until the first mouse move (no stray ring in the corner).
+ * - Hover detection uses ONE delegated pointerover/pointerout listener on the
+ *   document, so it costs nothing when the DOM changes.
+ * - On interactive elements the ring grows and gets a faint gold tint, so the
+ *   label underneath stays readable.
  *
- * Interactive element protocol
- * ----------------------------
- * Add the attribute `data-cursor="interactive"` to any link, button, or card
- * element to opt it into the cursor hover effect (ring scales to 2.5× and fills
- * gold on mouseenter, returns to normal on mouseleave).
- *
- * Use the `CURSOR_INTERACTIVE` helper from `src/utils/cursorInteractive.ts`:
- *   import { CURSOR_INTERACTIVE } from '../utils/cursorInteractive'
- *   <a href="#about" {...CURSOR_INTERACTIVE}>About Me</a>
- *
- * NOTE: The correct attribute is `data-cursor="interactive"` — NOT
- * `data-cursor-expand` (which appears in some early requirement drafts but is
- * NOT what this component listens for).
+ * Opt an element in with `data-cursor="interactive"` (see utils/cursorInteractive).
+ * Links, buttons and form fields are picked up automatically too.
  */
-// src/components/CustomCursor.tsx
 import { useEffect, useRef, useState } from 'react'
 
-const GOLD = '#E8B23A'
+const INTERACTIVE_SELECTOR = '[data-cursor="interactive"], a, button, input, textarea, select, label'
 
-// Lerp factor that yields ~80ms effective lag at 60 fps:
-//   time_constant ≈ -frameTime / ln(1 - factor)
-//   at factor=0.12, 60fps: ~15.4ms per frame → τ ≈ 79ms
-const LERP_FACTOR = 0.12
+// Lerp factor ≈ 80ms of lag at 60fps
+const LERP_FACTOR = 0.18
 
 interface CustomCursorProps {
   reducedMotion: boolean
 }
 
 export function CustomCursor({ reducedMotion }: CustomCursorProps) {
-  const dotRef  = useRef<HTMLDivElement>(null)
+  const dotRef = useRef<HTMLDivElement>(null)
   const ringRef = useRef<HTMLDivElement>(null)
-  const rafRef  = useRef<number>(0)
 
-  // Positions tracked in refs (not state) to avoid re-renders on every mousemove
-  const ringPos  = useRef({ x: 0, y: 0 })
-  const targetPos = useRef({ x: 0, y: 0 })
-
-  // Scale factor for the ring — mutated by enter/leave handlers, read by RAF loop
-  const ringScale = useRef(1)
-
-  // Whether ring is in "hover" state — used only to set initial CSS on mount
-  const [isHovering, setIsHovering] = useState(false)
-
-  // Detect fine pointer capability once on mount.
-  // window.matchMedia('(pointer: fine)') covers all mouse-driven devices.
-  // Returns false for touch screens, tablets, and stylus-only devices (pointer: coarse / none)
-  // regardless of screen size — no viewport-width check, no user-agent sniffing.
   const [hasFinePointer] = useState<boolean>(() =>
-    typeof window !== 'undefined'
-      ? window.matchMedia('(pointer: fine)').matches
-      : false
+    typeof window !== 'undefined' ? window.matchMedia('(pointer: fine)').matches : false,
   )
 
+  const enabled = hasFinePointer && !reducedMotion
+
   useEffect(() => {
-    if (!hasFinePointer || reducedMotion) return
+    if (!enabled) return
+    const dot = dotRef.current
+    const ring = ringRef.current
+    if (!dot || !ring) return
 
-    // Hide the native cursor while the custom cursor is active
-    document.body.classList.add('cursor-active')
+    let raf = 0
+    let visible = false
+    let hovering = false
+    const target = { x: -100, y: -100 }
+    const pos = { x: -100, y: -100 }
 
-    // ── Dot: instant position update ──────────────────────────────────────────
-    const handleMouseMove = (e: MouseEvent) => {
-      targetPos.current = { x: e.clientX, y: e.clientY }
+    const show = (on: boolean) => {
+      visible = on
+      dot.style.opacity = on ? '1' : '0'
+      ring.style.opacity = on ? '1' : '0'
+    }
 
-      if (dotRef.current) {
-        // Dot is 4×4 px — offset by 2px to center it on the pointer
-        dotRef.current.style.transform = `translate(${e.clientX - 2}px, ${e.clientY - 2}px)`
+    const onMove = (e: MouseEvent) => {
+      target.x = e.clientX
+      target.y = e.clientY
+      if (!visible) {
+        // Snap the ring to the pointer on first appearance
+        pos.x = target.x
+        pos.y = target.y
+        show(true)
+        document.body.classList.add('cursor-active')
       }
+      dot.style.transform = `translate(${e.clientX - 3}px, ${e.clientY - 3}px)`
     }
 
-    // ── Ring: lerp via RAF ─────────────────────────────────────────────────────
-    const animateRing = () => {
-      ringPos.current.x += (targetPos.current.x - ringPos.current.x) * LERP_FACTOR
-      ringPos.current.y += (targetPos.current.y - ringPos.current.y) * LERP_FACTOR
-
-      if (ringRef.current) {
-        // Ring is 20×20 px — offset by 10px to center it; then apply scale
-        // Combine translate + scale in a single transform string so they don't
-        // conflict with the React style prop (which we deliberately leave empty
-        // for transform on ringRef).
-        const x = ringPos.current.x - 10
-        const y = ringPos.current.y - 10
-        const s = ringScale.current
-        ringRef.current.style.transform = `translate(${x}px, ${y}px) scale(${s})`
-      }
-
-      rafRef.current = requestAnimationFrame(animateRing)
+    const tick = () => {
+      pos.x += (target.x - pos.x) * LERP_FACTOR
+      pos.y += (target.y - pos.y) * LERP_FACTOR
+      const scale = hovering ? 2 : 1
+      ring.style.transform = `translate(${pos.x - 14}px, ${pos.y - 14}px) scale(${scale})`
+      raf = requestAnimationFrame(tick)
     }
-    rafRef.current = requestAnimationFrame(animateRing)
+    raf = requestAnimationFrame(tick)
 
-    // ── Interactive element detection ──────────────────────────────────────────
-    // Attach mouseenter/mouseleave to all [data-cursor="interactive"] elements
-    // present in the DOM at mount time, and re-scan if the DOM changes via
-    // a MutationObserver so late-mounted sections are also covered.
-
-    const applyListeners = (root: Document | Element) => {
-      const els = root.querySelectorAll<HTMLElement>('[data-cursor="interactive"]')
-      els.forEach(el => {
-        el.addEventListener('mouseenter', handleEnter)
-        el.addEventListener('mouseleave', handleLeave)
-      })
+    const setHover = (on: boolean) => {
+      if (on === hovering) return
+      hovering = on
+      ring.style.backgroundColor = on ? 'rgba(232, 178, 58, 0.15)' : 'transparent'
+      ring.style.borderColor = on ? 'rgba(242, 201, 76, 0.9)' : 'rgba(232, 178, 58, 0.8)'
     }
 
-    const removeListeners = (root: Document | Element) => {
-      const els = root.querySelectorAll<HTMLElement>('[data-cursor="interactive"]')
-      els.forEach(el => {
-        el.removeEventListener('mouseenter', handleEnter)
-        el.removeEventListener('mouseleave', handleLeave)
-      })
+    const onOver = (e: Event) => {
+      const el = e.target as Element | null
+      setHover(Boolean(el?.closest?.(INTERACTIVE_SELECTOR)))
     }
 
-    const handleEnter = () => {
-      ringScale.current = 2.5
-      setIsHovering(true)
-    }
+    const onLeaveWindow = () => show(false)
 
-    const handleLeave = () => {
-      ringScale.current = 1
-      setIsHovering(false)
-    }
-
-    applyListeners(document)
-
-    // Watch for new [data-cursor="interactive"] nodes added after initial mount
-    const observer = new MutationObserver(() => {
-      // Remove stale listeners then re-apply to all matching elements
-      removeListeners(document)
-      applyListeners(document)
-    })
-    observer.observe(document.body, { childList: true, subtree: true })
-
-    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mousemove', onMove, { passive: true })
+    document.addEventListener('pointerover', onOver, { passive: true })
+    document.documentElement.addEventListener('mouseleave', onLeaveWindow)
 
     return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener('mousemove', onMove)
+      document.removeEventListener('pointerover', onOver)
+      document.documentElement.removeEventListener('mouseleave', onLeaveWindow)
       document.body.classList.remove('cursor-active')
-      cancelAnimationFrame(rafRef.current)
-      window.removeEventListener('mousemove', handleMouseMove)
-      removeListeners(document)
-      observer.disconnect()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasFinePointer, reducedMotion])
+  }, [enabled])
 
-  // No custom cursor on coarse/none pointer devices or when reduced motion is on
-  if (!hasFinePointer || reducedMotion) return null
+  if (!enabled) return null
+
+  const base = {
+    position: 'fixed' as const,
+    top: 0,
+    left: 0,
+    borderRadius: '50%',
+    pointerEvents: 'none' as const,
+    opacity: 0,
+    willChange: 'transform',
+  }
 
   return (
     <>
-      {/* ── Gold dot — 4px, follows cursor instantly with no lag ────────────── */}
       <div
         ref={dotRef}
         aria-hidden="true"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: 4,
-          height: 4,
-          borderRadius: '50%',
-          backgroundColor: GOLD,
-          pointerEvents: 'none',
-          zIndex: 9999,
-          willChange: 'transform',
-          // Start off-screen until first mousemove so it doesn't flash at (0,0)
-          transform: 'translate(-100px, -100px)',
-        }}
+        style={{ ...base, width: 6, height: 6, backgroundColor: '#E8B23A', zIndex: 9999 }}
       />
-
-      {/* ── Ring — ~20px outline, lerp-lags; scales to 2.5× + fills on hover ── */}
       <div
         ref={ringRef}
         aria-hidden="true"
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: 20,
-          height: 20,
-          borderRadius: '50%',
-          border: `2px solid ${GOLD}`,
-          // Fill gold on hover; transparent otherwise
-          backgroundColor: isHovering ? GOLD : 'transparent',
-          // CSS transition for the fill colour change (scale is driven by RAF)
-          transition: 'background-color 180ms ease-out',
-          pointerEvents: 'none',
+          ...base,
+          width: 28,
+          height: 28,
+          border: '1.5px solid rgba(232, 178, 58, 0.8)',
           zIndex: 9998,
-          willChange: 'transform',
-          // Start off-screen until first mousemove
-          transform: 'translate(-100px, -100px)',
+          transition: 'background-color 180ms ease-out, border-color 180ms ease-out, opacity 200ms ease',
         }}
       />
     </>

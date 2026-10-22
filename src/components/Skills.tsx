@@ -1,116 +1,46 @@
 // src/components/Skills.tsx
-// Skills section — "The Arsenal"
-// Renders all 8 skill groups from skillGroups data as cards with pill badges.
-//
-// Props:
-//   reducedMotion: boolean — disables hover transitions when true (reserved for scroll
-//                            reveal in task 6.4; passed through now so App.tsx signature
-//                            is stable)
+// "The Arsenal" — skill groups from data/index.ts as cards of pills.
 
+import { useRef } from 'react'
 import { skillGroups } from '../data/index'
-import { theme } from '../theme'
+import { useScrollReveal } from '../hooks/useScrollReveal'
+import { SectionHeading } from './SectionHeading'
 
 interface SkillsProps {
   reducedMotion: boolean
 }
 
 export function Skills({ reducedMotion }: SkillsProps) {
+  const gridRef = useRef<HTMLDivElement>(null)
+  useScrollReveal(gridRef, { reducedMotion, stagger: 0.08 })
+
   return (
     <section
       id="skills"
-      aria-label="Skills"
+      aria-labelledby="skills-title"
+      className="section"
       style={{ backgroundColor: 'var(--bg-navy-deep)' }}
-      className="py-20 px-6 md:px-12"
     >
-      {/* ── Max-width container ───────────────────────────────────────────── */}
-      <div className="max-w-6xl mx-auto">
+      <div className="mx-auto max-w-6xl">
+        <SectionHeading eyebrow="Skills" title="The Arsenal" id="skills-title" />
 
-        {/* ── Section heading ───────────────────────────────────────────────
-            Cinzel display font, gold colour, centered
-        */}
-        <h2
-          className="text-center text-3xl sm:text-4xl mb-14 tracking-widest uppercase"
-          style={{
-            fontFamily: theme.fonts.display,
-            color: '#E8B23A',
-          }}
-        >
-          The Arsenal
-        </h2>
-
-        {/* ── Skill group cards grid ────────────────────────────────────────
-            1 col → 2 col → 3 col → 4 col responsive grid (satisfies task 6.3)
-        */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div ref={gridRef} className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {skillGroups.map((group) => (
-            <div
-              key={group.category}
-              className="rounded-lg p-5 flex flex-col gap-3"
-              style={{ backgroundColor: '#0D1B2E' }}
-            >
-              {/* ── Category label ──────────────────────────────────────── */}
-              <h3
-                className="text-sm font-bold uppercase tracking-wider"
-                style={{
-                  fontFamily: theme.fonts.display,
-                  color: '#E8B23A',
-                }}
-              >
+            <div key={group.category} className="card flex flex-col gap-3 p-5">
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-gold">
                 {group.category}
               </h3>
-
-              {/* ── Skill pills ─────────────────────────────────────────── */}
-              <div className="flex flex-wrap gap-2">
+              <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
                 {group.skills.map((skill) => (
-                  <SkillPill
-                    key={skill}
-                    skill={skill}
-                    reducedMotion={reducedMotion}
-                  />
+                  <li key={skill} className="chip">
+                    {skill}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           ))}
         </div>
       </div>
     </section>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// SkillPill — individual badge with gold glow on hover (satisfies task 6.2)
-// ---------------------------------------------------------------------------
-
-interface SkillPillProps {
-  skill: string
-  reducedMotion: boolean
-}
-
-function SkillPill({ skill, reducedMotion }: SkillPillProps) {
-  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
-    if (!reducedMotion) {
-      ;(e.currentTarget as HTMLSpanElement).style.boxShadow =
-        '0 0 8px rgba(232,178,58,0.7)'
-    }
-  }
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLSpanElement>) => {
-    ;(e.currentTarget as HTMLSpanElement).style.boxShadow = 'none'
-  }
-
-  return (
-    <span
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        backgroundColor: '#1B3A5B',
-        color: '#E8EDF2',
-        transition: reducedMotion ? 'none' : 'box-shadow 250ms ease',
-        boxShadow: 'none',
-      }}
-      className="text-xs px-3 py-1 rounded-full font-medium select-none"
-    >
-      {skill}
-    </span>
   )
 }

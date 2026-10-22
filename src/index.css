@@ -1,109 +1,170 @@
-/* ─── Google Fonts ─────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+/* Fonts are self-hosted via @fontsource (imported in main.tsx) — no third-party requests. */
 
-/* ─── Tailwind Directives ───────────────────────────────────────────────────── */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ─── CSS Custom Properties ─────────────────────────────────────────────────── */
+/* ─── CSS custom properties ───────────────────────────────────────────────── */
 :root {
-  /* Base */
-  --color-navy:        #0A1428;
-  --color-navy-light:  #0D1B2E;
-
-  /* Accent */
-  --color-ocean:       #1B3A5B;
-  --color-ocean-mid:   #2C5F7C;
-
-  /* Gold */
-  --color-gold:        #E8B23A;
-  --color-gold-bright: #F2C94C;
-
-  /* Text */
-  --color-text-primary:   #E8EDF2;
-  --color-text-secondary: #8FA3B8;
-
-  /* ── Section background tokens ──────────────────────────────────────────
-     Semi-transparent so the fixed particle canvas (z-index: 0) bleeds
-     through. Use these instead of solid #0A1428 / #0D1B2E on sections.  */
-  --bg-navy-deep: rgba(10, 20, 40, 0.82);   /* was #0A1428 */
-  --bg-navy-mid:  rgba(13, 27, 46, 0.82);   /* was #0D1B2E */
+  /* Semi-transparent section backgrounds so the fixed particle canvas shows through */
+  --bg-navy-deep: rgba(10, 20, 40, 0.82);
+  --bg-navy-mid: rgba(13, 27, 46, 0.82);
+  --nav-height: 64px;
 }
 
-/* ─── Global Base Styles ─────────────────────────────────────────────────────── */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+/* ─── Base ────────────────────────────────────────────────────────────────── */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* Anchored sections land below the sticky nav */
+    scroll-padding-top: var(--nav-height);
+  }
+
+  body {
+    margin: 0;
+    @apply bg-navy text-textPrimary font-body antialiased;
+    overflow-x: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid theme('colors.gold');
+    outline-offset: 3px;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  ::placeholder {
+    color: theme('colors.textSecondary');
+    opacity: 0.75;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
 }
 
-/* ─── Keyboard Focus Ring ────────────────────────────────────────────────────── */
-:focus-visible {
-  outline: 2px solid #E8B23A;
-  outline-offset: 2px;
+/* ─── Reusable components ─────────────────────────────────────────────────── */
+@layer components {
+  /* Buttons — hover and keyboard focus get the same treatment */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded px-6 font-body text-base font-semibold no-underline;
+    min-height: 48px;
+    transition:
+      filter 200ms ease,
+      box-shadow 200ms ease,
+      background-color 200ms ease;
+  }
+  .btn-primary {
+    @apply btn bg-gold text-navy;
+  }
+  .btn-outline {
+    @apply btn border-2 border-gold bg-transparent text-gold;
+  }
+  .btn-primary:hover,
+  .btn-primary:focus-visible,
+  .btn-outline:hover,
+  .btn-outline:focus-visible {
+    filter: brightness(1.12);
+    box-shadow: 0 0 14px rgba(232, 178, 58, 0.5);
+  }
+  .btn-sm {
+    @apply px-4 text-sm;
+    min-height: 44px;
+  }
+
+  /* Gold text link */
+  .link-gold {
+    @apply inline-flex items-center gap-2 font-medium text-gold no-underline;
+    min-height: 44px;
+    transition: color 200ms ease;
+  }
+  .link-gold:hover,
+  .link-gold:focus-visible {
+    @apply text-goldBright underline underline-offset-4;
+  }
+
+  /* Pills */
+  .chip {
+    @apply inline-block select-none rounded-full bg-ocean px-3 py-1 text-xs font-medium text-textPrimary;
+  }
+
+  /* Cards */
+  .card {
+    @apply rounded-xl border border-oceanMid/50 bg-navyLight;
+    transition:
+      border-color 250ms ease,
+      box-shadow 250ms ease;
+  }
+  .card-hover:hover,
+  .card-hover:focus-within {
+    border-color: rgba(232, 178, 58, 0.55);
+    box-shadow: 0 0 18px rgba(232, 178, 58, 0.18);
+  }
+
+  /* Form fields */
+  .field {
+    @apply w-full rounded-md border border-oceanMid bg-ocean px-3.5 py-2.5 font-body text-[0.95rem] text-textPrimary;
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+  }
+  .field:focus {
+    @apply border-gold;
+    box-shadow: 0 0 0 3px rgba(232, 178, 58, 0.2);
+  }
+  .field[aria-invalid='true'] {
+    border-color: #f08a7e;
+  }
+
+  /* Section shell */
+  .section {
+    @apply px-6 py-20 md:px-12 md:py-24;
+  }
+
+  /* Screen-reader only */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    @apply sr-only;
+  }
 }
 
-:focus:not(:focus-visible) {
-  outline: none;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  background-color: var(--color-navy);
-  color: var(--color-text-primary);
-  font-family: Inter, Satoshi, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
-
-/* ─── Custom Cursor ──────────────────────────────────────────────────────────── */
-body.cursor-active {
-  cursor: none;
-}
-
-/* ─── Typing Cursor Blink ────────────────────────────────────────────────────── */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
-
-.typing-cursor {
-  display: inline-block;
-  animation: blink 0.7s step-start infinite;
-}
-
-/* ─── Scroll Indicator Oscillation ──────────────────────────────────────────── */
-@keyframes compass-float {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-8px); }
-}
-
-.compass-float {
-  animation: compass-float 1.5s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .compass-float { animation: none; }
-}
-
+/* ─── Animations ──────────────────────────────────────────────────────────── */
 @keyframes scrollBounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50%       { transform: translateX(-50%) translateY(-8px); }
+  0%,
+  100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-8px);
+  }
 }
 
 .scroll-indicator-bounce {
   animation: scrollBounce 1.5s ease-in-out infinite;
 }
 
-/* ─── Grain / Parchment Texture Overlay ─────────────────────────────────────── */
-/* Rendered as a standalone <div class="grain-overlay"> in App.tsx (not ::after)
-   so it reliably covers the full viewport at all scroll positions.              */
+/* ─── Custom cursor ───────────────────────────────────────────────────────── */
+body.cursor-active,
+body.cursor-active a,
+body.cursor-active button {
+  cursor: none;
+}
+/* Keep the I-beam in text fields so typing still feels normal */
+body.cursor-active input,
+body.cursor-active textarea {
+  cursor: text;
+}
+
+/* ─── Grain / parchment overlay ───────────────────────────────────────────── */
 .grain-overlay {
   position: fixed;
   inset: 0;
@@ -116,5 +177,10 @@ body.cursor-active {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .grain-overlay { opacity: 0.035; }
+  .scroll-indicator-bounce {
+    animation: none;
+  }
+  .grain-overlay {
+    opacity: 0.035;
+  }
 }

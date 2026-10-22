@@ -1,168 +1,110 @@
 # Kailash Chaudhary — Portfolio
 
-A cinematic, voyage-atmospheric single-page portfolio for **Kailash Chaudhary**, 2025 CS graduate and Cloud/DevOps + Python engineer. Seven scroll-driven sections tell the story of his skills, projects, and experience against a dark navy canvas with drifting gold particle motes, sunset gradient wash, and original SVG illustrations.
+[![CI](https://github.com/kailashji24/kailash-portfolio/actions/workflows/ci.yml/badge.svg)](https://github.com/kailashji24/kailash-portfolio/actions/workflows/ci.yml)
+
+**Live:** https://kailash-portfolio-eight.vercel.app
+
+Single-page portfolio for **Kailash Chaudhary**, Cloud & DevOps engineer (B.E. Computer Science, 2025). A nautical theme (navy, gold, sunset hero, original line-art) wraps a recruiter-first layout: sticky navigation, project cards with verifiable outcomes, a timeline, certifications and a contact section with one-click email copy.
 
 ---
 
-## Tech Stack
+## Tech stack
 
 | Layer | Technology |
 |---|---|
-| Framework | React 19 + Vite 6 + TypeScript |
-| Styling | Tailwind CSS + CSS custom properties |
-| Animations | GSAP + ScrollTrigger |
-| Particles | Custom canvas implementation (`ParticleBackground.tsx`) — no third-party particle library |
-| 3D Cards | react-tilt |
-| Fonts | Cinzel (display) · Inter (body) |
+| Framework | React 19 + TypeScript 6 + Vite 8 |
+| Styling | Tailwind CSS 3, tokens in `src/theme.ts` (shared with Tailwind) |
+| Animation | GSAP + ScrollTrigger, custom canvas particles, CSS keyframes |
+| Fonts | Cinzel + Inter, self-hosted via `@fontsource` (no third-party requests) |
+| Tests | Vitest + Testing Library + fast-check (property-based) |
+| CI | GitHub Actions — lint, test, build on every push and PR |
+| Hosting | Vercel (security headers in `vercel.json`), Netlify-compatible |
+
+No `--legacy-peer-deps` needed: every dependency is pinned and peer-compatible with React 19.
 
 ---
 
-## Prerequisites
+## Getting started
 
-- **Node.js ≥ 18** — [nodejs.org](https://nodejs.org)
-- **npm ≥ 9** — included with Node 18+
-
-Verify your versions:
+Requires **Node.js ≥ 20**.
 
 ```bash
-node -v   # should print v18.x or higher
-npm -v    # should print 9.x or higher
+git clone https://github.com/kailashji24/kailash-portfolio.git
+cd kailash-portfolio
+npm ci
+npm run dev        # http://localhost:5173
 ```
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Dev server with HMR |
+| `npm run lint` | ESLint (TypeScript + React hooks rules) |
+| `npm test` | Run all tests once |
+| `npm run build` | Type-check and build to `dist/` |
+| `npm run preview` | Serve the production build locally |
 
 ---
 
-## Getting Started
+## Editing content
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/kailashji24/portfolio-onepiece.git
-cd portfolio-onepiece
+All user-facing copy lives in **`src/data/index.ts`** — profile, projects, experience, skills, certifications and contact details. Components never hardcode text, so update one file and every section (and the contact form's `mailto:`) follows.
 
-# 2. Install dependencies (--legacy-peer-deps resolves @testing-library peer conflict)
-npm install --legacy-peer-deps
+Project cards follow one rule: **every outcome must be verifiable in the linked repository.**
 
-# 3. Start the dev server
-npm run dev
-```
-
-The app will be available at **http://localhost:5173**.
-
----
-
-## Build
-
-```bash
-# Type-check and compile to dist/
-npm run build
-
-# Preview the production build locally
-npm run preview
-```
-
-The compiled output lands in `dist/`.
+If the site moves to a custom domain, update `profile.siteUrl` in `src/data/index.ts` and the canonical / Open Graph URLs in `index.html`.
 
 ---
 
 ## Deployment
 
-### Vercel (recommended)
+**Vercel** — import the repo; defaults work (`npm run build`, output `dist`). `vercel.json` adds SPA rewrites, a Content-Security-Policy and other security headers, and long-term caching for hashed assets.
 
-1. Push the repo to GitHub.
-2. Import the project on [vercel.com](https://vercel.com) — Vercel auto-detects the Vite config.
-3. Leave all build settings at their defaults (`npm run build`, output `dist`).
-4. Click **Deploy**. Every push to `main` triggers a re-deploy automatically.
-
-`vercel.json` includes `"installCommand": "npm install --legacy-peer-deps"` to resolve the `@testing-library/react` peer dependency conflict in Vercel's clean CI environment.
-
-### Netlify
-
-**Option A — Drag and drop**
-
-1. Run `npm run build` locally.
-2. Drag the `dist/` folder onto the Netlify drop zone at [app.netlify.com](https://app.netlify.com).
-
-**Option B — Connect repo**
-
-1. Import the repo in the Netlify dashboard.
-2. Set build command: `npm run build`, publish directory: `dist`.
-3. The `public/_redirects` file handles SPA routing so direct URLs don't return 404.
+**Netlify** — build command `npm run build`, publish directory `dist`. `public/_redirects` handles SPA routing.
 
 ---
 
-## Features
-
-| # | Section | Highlights |
-|---|---|---|
-| 1 | **Hero** | Cinzel stagger-letter reveal, cycling role typing animation, sunset gradient wash + radial amber sun glow, tech-glyph particle layer (cloud, terminal, DB, container, circuit, braces), VoyageMotifs captain-at-wheel + sailboat silhouettes, Resume download CTA |
-| 2 | **About** | Bio, PREC/SPPU 2025 graduate, CGPA 7.90, Pune · open to Bengaluru |
-| 3 | **Skills** | 8 skill categories (CI/CD, Cloud, IaC, ML, …), pill badges with gold hover glow |
-| 4 | **Projects** | Weathered bounty-poster cards with react-tilt 3D, gold glow on hover, GitHub links |
-| 5 | **Experience** | Alternating vertical timeline with gold dot nodes and ship's-log card styling |
-| 6 | **Certifications** | Certification + publication cards; PDF download button on each certification card |
-| 7 | **Contact** | Contact form (name / email / message → mailto), social links (email · GitHub · LinkedIn), Resume download CTA |
-
-**Global extras**
-
-- Custom gold dot + lagging ring cursor (desktop only, hidden on touch/mobile)
-- Custom canvas particle system — ~60 drifting gold ember motes with flicker, `requestAnimationFrame` driven, static frame under `prefers-reduced-motion`
-- Fixed grain/parchment texture overlay (`mix-blend-mode: screen`)
-- GSAP ScrollTrigger scroll-driven reveal on every section
-- `prefers-reduced-motion` respected throughout — transforms swapped for opacity-only, all CSS animations disabled
-
----
-
-## Project Structure
+## Project structure
 
 ```
 src/
 ├── components/
-│   ├── CustomCursor.tsx         # Gold dot + lagging outer ring cursor
-│   ├── ParticleBackground.tsx   # Custom canvas ember particle system (fixed, full-viewport)
-│   ├── VoyageMotifs.tsx         # Captain-at-wheel + sailboat SVG silhouettes (Hero only)
-│   ├── TechGlyphs.tsx           # Floating tech icon glyphs — cloud, terminal, DB, container…
-│   ├── Hero.tsx                 # Full-viewport landing: headline, typing roles, CTAs, illustrations
-│   ├── About.tsx                # Bio, education stats, availability
-│   ├── Skills.tsx               # Skill group cards with pill badges
-│   ├── Projects.tsx             # Bounty-poster project cards with tilt effect
-│   ├── Experience.tsx           # Vertical timeline of experience entries
-│   ├── Certs.tsx                # Certification + publication cards with PDF download
-│   └── Contact.tsx              # Contact form, social links, footer
+│   ├── Navbar.tsx               # Sticky nav, active-section highlight, mobile menu
+│   ├── SectionHeading.tsx       # Shared "eyebrow + themed title" heading
+│   ├── Hero.tsx                 # Name, role, pitch, CTAs, illustrations
+│   ├── About.tsx · Skills.tsx · Projects.tsx · Experience.tsx · Certs.tsx · Contact.tsx
+│   ├── CustomCursor.tsx         # Desktop-only cursor (delegated hover detection)
+│   ├── ParticleBackground.tsx   # DPR-aware canvas motes, pauses when tab hidden
+│   ├── TechGlyphs.tsx · VoyageMotifs.tsx   # Decorative hero layers
 ├── hooks/
-│   ├── useReducedMotion.ts      # Reads prefers-reduced-motion media query
-│   ├── useScrollReveal.ts       # GSAP ScrollTrigger reveal helper
-│   └── useTypingAnimation.ts    # Cycling role-title typing effect
-├── data/
-│   └── index.ts                 # All static content: projects, certs, experience, contact
-├── utils/
-│   ├── cursorInteractive.ts     # data-cursor="interactive" prop helper
-│   └── mailto.ts                # Builds mailto: href from form fields
-├── theme.ts                     # Design tokens: colours, fonts, motion config
-├── App.tsx                      # Root shell: particle layer, grain overlay, section order
-├── main.tsx
-└── index.css                    # Global styles, CSS custom properties, grain overlay
-```
+│   ├── useReducedMotion.ts      # prefers-reduced-motion
+│   ├── useScrollReveal.ts       # GSAP ScrollTrigger reveal
+│   ├── useTilt.ts               # Lightweight 3D hover tilt for cards
+│   └── useTypingAnimation.ts    # (currently unused; kept with its tests)
+├── data/index.ts                # ALL site content
+├── utils/                       # mailto builder, cursor opt-in helper
+├── theme.ts                     # Design tokens (imported by tailwind.config.ts)
+└── index.css                    # Base styles + .btn / .card / .chip / .field components
 
-**Static assets to place manually in `public/`:**
-
-```
 public/
-├── resume.pdf                   # Linked from Hero + Contact "Download Resume" buttons
-├── favicon.svg
-├── icons.svg
-├── _redirects                   # Netlify SPA routing
-└── certs/
-    ├── aws-saa.pdf              # AWS Solutions Architect Associate (Intellipaat)
-    ├── iit-roorkee-devops.pdf   # Advanced Cloud Computing & DevOps (IIT Roorkee iHUB)
-    └── forage-aws.pdf           # AWS Solutions Architecture Job Simulation (Forage)
+├── Kailash_Chaudhary_Resume.pdf
+├── certs/                       # Certificate PDFs
+├── papers/irjmets-har-2025.pdf  # Published paper
+├── og-image.png                 # 1200×630 link-preview image
+├── favicon.svg · apple-touch-icon.png
+└── _redirects                   # Netlify SPA routing
 ```
+
+---
+
+## Accessibility
+
+- Skip link, landmark sections labelled by their headings, visible gold focus ring
+- Text contrast ≥ 4.5:1 everywhere (muted text is 8.3:1 on the page background)
+- Tap targets ≥ 44 × 44 px
+- `prefers-reduced-motion` turns off the cursor, particles motion, tilt, reveals and keyframe animations
 
 ---
 
 ## Contact
 
-**Kailash Chaudhary**
-Email: [kailash998955@gmail.com](mailto:kailash998955@gmail.com)
-GitHub: [github.com/kailashji24](https://github.com/kailashji24)
-LinkedIn: [linkedin.com/in/kailash-chaudhary24](https://linkedin.com/in/kailash-chaudhary24)
-
-Open to Cloud/DevOps and Backend/Python roles — based in Pune, open to relocation.
+**Kailash Chaudhary** · [kailash998955@gmail.com](mailto:kailash998955@gmail.com) · [GitHub](https://github.com/kailashji24) · [LinkedIn](https://linkedin.com/in/kailash-chaudhary24)

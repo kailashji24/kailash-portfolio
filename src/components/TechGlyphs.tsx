@@ -26,6 +26,8 @@ interface GlyphDef {
   opacity: number
   duration: number  // seconds
   delay: number     // seconds
+  /** Hidden below md so glyphs never sit behind the hero buttons on phones */
+  desktopOnly?: boolean
 }
 
 const GLYPHS: GlyphDef[] = [
@@ -83,6 +85,7 @@ const GLYPHS: GlyphDef[] = [
     opacity: 0.11,
     duration: 13,
     delay: 3,
+    desktopOnly: true,
   },
   // ── Container / cube box ───────────────────────────────────────────────────
   {
@@ -106,6 +109,7 @@ const GLYPHS: GlyphDef[] = [
     opacity: 0.12,
     duration: 10,
     delay: 2,
+    desktopOnly: true,
   },
   // ── Circuit node / chip ────────────────────────────────────────────────────
   {
@@ -137,6 +141,7 @@ const GLYPHS: GlyphDef[] = [
     opacity: 0.10,
     duration: 14,
     delay: 4,
+    desktopOnly: true,
   },
   // ── Curly braces { } ──────────────────────────────────────────────────────
   {
@@ -162,6 +167,7 @@ const GLYPHS: GlyphDef[] = [
     opacity: 0.11,
     duration: 12,
     delay: 0.8,
+    desktopOnly: true,
   },
 ]
 
@@ -190,7 +196,7 @@ export function TechGlyphs({ reducedMotion }: TechGlyphsProps) {
         <div
           key={g.id}
           aria-hidden="true"
-          className={reducedMotion ? undefined : 'tech-glyph'}
+          className={`${reducedMotion ? '' : 'tech-glyph'} ${g.desktopOnly ? 'hidden md:block' : ''}`}
           style={{
             position: 'absolute',
             top: g.top,

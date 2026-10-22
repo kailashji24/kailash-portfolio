@@ -1,42 +1,29 @@
 // src/theme.ts
-// Central design token file — single source of truth for colors, fonts, and motion config.
-// Imported by tailwind.config.ts and components for consistent theming.
+// Single source of truth for design tokens.
+// tailwind.config.ts imports `theme.colors` from here, so Tailwind classes
+// (bg-navy, text-gold, …) and the few runtime style values stay in sync.
 
 export const theme = {
   colors: {
-    base: {
-      navy:      '#0A1428',  // primary background
-      navyLight: '#0D1B2E',  // alternating section background
-    },
-    accent: {
-      ocean:    '#1B3A5B',  // mid ocean accent
-      oceanMid: '#2C5F7C',  // brighter ocean accent
-    },
-    gold: {
-      // WCAG AA verified (vs navy #0A1428):
-      //   #E8B23A →  9.50:1  ✓ (≥3:1 large/bold text)
-      primary: '#E8B23A',  // primary gold accent / interactive highlights
-      bright:  '#F2C94C',  // brighter gold variant
-    },
-    text: {
-      // WCAG AA verified (vs navy #0A1428):
-      //   #E8EDF2 → 15.59:1  ✓ (≥4.5:1 normal text)
-      //   #8FA3B8 →  7.08:1  ✓ (≥3:1 large text)
-      primary:   '#E8EDF2',  // off-white body text
-      secondary: '#8FA3B8',  // muted secondary text
-    },
+    navy: '#0A1428', // page background
+    navyLight: '#0D1B2E', // card / alternate section background
+    ocean: '#1B3A5B', // chips, inputs, subtle fills
+    oceanMid: '#2C5F7C', // borders, dividers
+    gold: '#E8B23A', // primary accent
+    goldBright: '#F2C94C', // hover accent
+    textPrimary: '#E8EDF2', // body text      — 15.6:1 on navy
+    textSecondary: '#9DB0C4', // muted text   — 8.3:1 on navy, 5.2:1 on ocean
   },
   fonts: {
-    display: '"Cinzel", "Pirata One", serif',   // hero headlines + section headings only
-    body:    '"Inter", "Satoshi", sans-serif',  // all body text, pills, labels
+    display: '"Cinzel", Georgia, serif', // headlines + section titles only
+    body: '"Inter", system-ui, sans-serif', // everything else
   },
   motion: {
-    durationFast:   300,  // ms — hover/focus transitions
-    durationNormal: 450,  // ms — scroll reveal, standard transitions
-    durationSlow:   600,  // ms — hero animations, parallax
-    ease:           'power2.out',  // GSAP easing string
+    durationFast: 300, // ms — hover/focus transitions
+    durationNormal: 450, // ms — scroll reveal
+    durationSlow: 600, // ms — hero entrance
+    ease: 'power2.out', // GSAP easing
   },
 } as const
 
 export type Theme = typeof theme
-export type ThemeColors = typeof theme.colors

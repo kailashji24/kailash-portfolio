@@ -1,19 +1,20 @@
 // src/App.tsx
-// Portfolio root shell — composes global overlays and section components.
+// Portfolio root shell — global overlays, navigation and page sections.
 //
 // Layer order (bottom → top):
-//   z-index 0  — ParticleBackground canvas (position: fixed)
-//   z-index 2  — grain-overlay div (position: fixed, mix-blend-mode: screen)
-//   z-index 1  — <main> page content (sections use semi-transparent bg tokens)
-//   z-index 50 — CustomCursor
+//   z 0   — ParticleBackground canvas (fixed)
+//   z 1   — <main> page content (sections use semi-transparent backgrounds)
+//   z 2   — grain overlay (fixed, pointer-events: none)
+//   z 40  — Navbar (fixed)
+//   z 9998+ — CustomCursor
 
 import { useEffect } from 'react'
-import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 import { useReducedMotion } from './hooks/useReducedMotion'
 import { CustomCursor } from './components/CustomCursor'
 import ParticleBackground from './components/ParticleBackground'
+import { Navbar } from './components/Navbar'
 import { Hero } from './components/Hero'
 import { About } from './components/About'
 import { Skills } from './components/Skills'
@@ -22,29 +23,36 @@ import { Experience } from './components/Experience'
 import { Certs } from './components/Certs'
 import { Contact } from './components/Contact'
 
-import './App.css'
-
 function App() {
   const reducedMotion = useReducedMotion()
 
+  // Web fonts change text metrics after first paint — recompute trigger
+  // positions once they are ready so reveals fire at the right scroll offset.
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger)
+    let cancelled = false
+    document.fonts?.ready.then(() => {
+      if (!cancelled) ScrollTrigger.refresh()
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', backgroundColor: '#0A1428' }}>
+    <div className="relative min-h-screen bg-navy">
+      <a
+        href="#main"
+        className="sr-only-focusable fixed left-4 top-3 z-50 rounded bg-gold px-4 py-2 font-semibold text-navy"
+      >
+        Skip to content
+      </a>
 
-      {/* ── z-index 0 — Persistent particle canvas behind every section ── */}
       <ParticleBackground reducedMotion={reducedMotion} />
-
-      {/* ── z-index 2 — Grain / parchment texture overlay ──────────────── */}
       <div className="grain-overlay" aria-hidden="true" />
-
-      {/* ── Fixed cursor overlay ────────────────────────────────────────── */}
       <CustomCursor reducedMotion={reducedMotion} />
+      <Navbar />
 
-      {/* ── z-index 1 — Page sections ───────────────────────────────────── */}
-      <main style={{ position: 'relative', zIndex: 1 }}>
+      <main id="main" tabIndex={-1} className="relative z-[1] outline-none">
         <Hero reducedMotion={reducedMotion} />
         <About reducedMotion={reducedMotion} />
         <Skills reducedMotion={reducedMotion} />

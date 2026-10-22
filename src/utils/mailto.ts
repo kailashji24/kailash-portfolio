@@ -7,10 +7,12 @@
 //
 // Correctness property (P3):
 //   For any valid ContactFormState, buildMailtoHref always returns a string
-//   that starts with 'mailto:kailash998955@gmail.com' and contains no
+//   that starts with `mailto:${contactInfo.email}` and contains no
 //   raw spaces, '@', or unencoded special characters in the query string.
 
-const RECIPIENT = 'kailash998955@gmail.com'
+import { contactInfo } from '../data/index'
+
+const RECIPIENT = contactInfo.email
 
 export interface ContactFormState {
   name: string
